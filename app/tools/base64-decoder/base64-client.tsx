@@ -7,7 +7,9 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { Icon } from "@/components/ui/icon";
 import { useCopyToClipboard } from "@/hooks/use-copy-to-clipboard";
-import { downloadAsFile } from "@/lib/utils";
+import { downloadAsFile, cn } from "@/lib/utils";
+
+const MAX_SAFE_SIZE = 2 * 1024 * 1024; // 2MB
 
 export function Base64Client() {
   const [inputType, setInputType] = useState<"text" | "file">("text");
@@ -16,6 +18,7 @@ export function Base64Client() {
   const [textOutput, setTextOutput] = useState("");
   const [urlSafe, setUrlSafe] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [mobileTab, setMobileTab] = useState<"input" | "output">("input");
 
   // File states
   const [fileDetails, setFileDetails] = useState<{ name: string; size: number; type: string } | null>(null);
@@ -31,7 +34,6 @@ export function Base64Client() {
   // Safe Unicode/UTF-8 Base64 Encoder
   const encodeUtf8ToBase64 = (str: string): string => {
     try {
-      // Encode URI Component first, then convert percents to binary characters, then btoa
       const base64 = btoa(
         encodeURIComponent(str).replace(/%([0-9A-F]{2})/g, (_, p1) =>
           String.fromCharCode(parseInt(p1, 16))
@@ -53,16 +55,12 @@ export function Base64Client() {
     if (!sanitized) return "";
 
     try {
-      // Revert URL-safe replacements if applicable
       sanitized = sanitized.replace(/-/g, "+").replace(/_/g, "/");
-
-      // Restore base64 padding if stripped
       const padLength = (4 - (sanitized.length % 4)) % 4;
       if (padLength > 0) {
         sanitized += "=".repeat(padLength);
       }
 
-      // atob to binary string, map to percent escape sequences, then decodeURI
       const binaryString = atob(sanitized);
       const percentEscaped = binaryString
         .split("")
@@ -82,6 +80,13 @@ export function Base64Client() {
       return;
     }
 
+    if (val.length > MAX_SAFE_SIZE) {
+      setError("Processing limit warning: Input is larger than 2MB. Converting this may lock your browser tab. Try shorter snippets.");
+      setTextOutput("");
+      setMobileTab("output");
+      return;
+    }
+
     try {
       if (currentMode === "encode") {
         const encoded = encodeUtf8ToBase64(val);
@@ -92,15 +97,16 @@ export function Base64Client() {
         setTextOutput(decoded);
         setError(null);
       }
+      setMobileTab("output"); // Auto-focus results panel on mobile
     } catch (err: any) {
       setError(err.message);
       setTextOutput("");
+      setMobileTab("output");
     }
   };
 
   const handleModeChange = (nextMode: "encode" | "decode") => {
     setMode(nextMode);
-    // Swap inputs/outputs for convenient UX
     if (textOutput && !error) {
       setTextInput(textOutput);
       setTextOutput("");
@@ -119,6 +125,7 @@ export function Base64Client() {
     setFileDetails(null);
     setFileBase64("");
     setFileDataUri("");
+    setMobileTab("input");
   };
 
   const loadSample = () => {
@@ -133,9 +140,13 @@ export function Base64Client() {
     }
   };
 
-  // File processing helper
   const processFile = (file: File) => {
     if (!file) return;
+
+    if (file.size > MAX_SAFE_SIZE) {
+      alert("File size limit warning: Processing files larger than 2MB may crash this browser tab.");
+      return;
+    }
 
     setFileDetails({
       name: file.name,
@@ -148,7 +159,6 @@ export function Base64Client() {
       const dataUri = e.target?.result as string;
       setFileDataUri(dataUri);
       
-      // Extract the raw base64 sequence from dataUri
       const base64Index = dataUri.indexOf(";base64,");
       if (base64Index !== -1) {
         const rawBase64 = dataUri.slice(base64Index + 8);
@@ -163,7 +173,6 @@ export function Base64Client() {
     if (file) processFile(file);
   };
 
-  // Drag and drop events
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
     setIsDragging(true);
@@ -185,7 +194,6 @@ export function Base64Client() {
       {/* Configuration Controls Bar */}
       <div className="flex flex-wrap items-center justify-between gap-4 p-4 rounded-xl border border-border bg-card">
         <div className="flex items-center space-x-6">
-          {/* Input Type Selector */}
           <div className="inline-flex rounded-lg border border-input p-0.5 bg-background">
             <button
               onClick={() => {
@@ -215,7 +223,6 @@ export function Base64Client() {
             </button>
           </div>
 
-          {/* Encode / Decode Selectors */}
           {inputType === "text" && (
             <div className="inline-flex rounded-lg border border-input p-0.5 bg-background">
               <button
@@ -250,7 +257,6 @@ export function Base64Client() {
                 checked={urlSafe}
                 onChange={(e) => {
                   setUrlSafe(e.target.checked);
-                  // Trigger reformat if text input exists
                   setTimeout(() => handleTextConvert(), 10);
                 }}
               />
@@ -264,11 +270,38 @@ export function Base64Client() {
         </div>
       </div>
 
+      {/* Mobile Tab Swapper */}
+      {inputType === "text" && (
+        <div className="lg:hidden flex rounded-lg border border-input p-0.5 bg-background">
+          <button
+            onClick={() => setMobileTab("input")}
+            className={`flex-1 py-2 rounded-md text-xs font-semibold transition-all cursor-pointer ${
+              mobileTab === "input"
+                ? "bg-secondary text-foreground shadow-sm"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            Raw Input
+          </button>
+          <button
+            onClick={() => setMobileTab("output")}
+            className={`flex-1 py-2 rounded-md text-xs font-semibold transition-all cursor-pointer ${
+              mobileTab === "output"
+                ? "bg-secondary text-foreground shadow-sm"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            Base64 Result {textOutput || error ? "•" : ""}
+          </button>
+        </div>
+      )}
+
       {/* Text Mode Editor View */}
       {inputType === "text" && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Input card */}
-          <Card className="flex flex-col h-[500px]">
+          <Card className={cn("flex flex-col h-[500px]", {
+            "hidden lg:flex": mobileTab !== "input"
+          })}>
             <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-muted/20">
               <span className="text-sm font-bold flex items-center">
                 <Icon name="Terminal" className="w-4 h-4 mr-2 text-primary" />
@@ -295,8 +328,9 @@ export function Base64Client() {
             </CardContent>
           </Card>
 
-          {/* Output card */}
-          <Card className="flex flex-col h-[500px]">
+          <Card className={cn("flex flex-col h-[500px]", {
+            "hidden lg:flex": mobileTab !== "output"
+          })}>
             <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-muted/20">
               <span className="text-sm font-bold flex items-center">
                 <Icon name="FileText" className="w-4 h-4 mr-2 text-primary" />
@@ -366,7 +400,6 @@ export function Base64Client() {
       {/* File Upload Mode View */}
       {inputType === "file" && (
         <div className="space-y-6 animate-fade-in">
-          {/* Drag & Drop Card */}
           <div
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
@@ -388,14 +421,13 @@ export function Base64Client() {
             </div>
             <h3 className="text-base font-bold mb-1">Drag and drop file here</h3>
             <p className="text-xs text-muted-foreground mb-4 max-w-xs leading-relaxed">
-              Supports images, small videos, texts, zip folders, or binaries. File is processed locally inside your browser.
+              Supports images, small videos, texts, zip folders, or binaries. Limit file size to 2MB to keep browser tab responsive.
             </p>
             <Button size="sm" onClick={() => fileInputRef.current?.click()}>
               Choose File
             </Button>
           </div>
 
-          {/* File Results card */}
           {fileDetails && (
             <Card className="animate-fade-in">
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between px-6 py-4 border-b border-border bg-muted/20">
@@ -416,7 +448,6 @@ export function Base64Client() {
               </div>
 
               <CardContent className="p-6 space-y-6">
-                {/* Variant 1: Raw Base64 string */}
                 <div className="space-y-2">
                   <div className="flex justify-between items-center">
                     <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
@@ -443,7 +474,6 @@ export function Base64Client() {
                   />
                 </div>
 
-                {/* Variant 2: Data URI String */}
                 <div className="space-y-2">
                   <div className="flex justify-between items-center">
                     <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
@@ -470,7 +500,6 @@ export function Base64Client() {
                   />
                 </div>
 
-                {/* HTML embed helper */}
                 {fileDetails.type.startsWith("image/") && (
                   <div className="space-y-2">
                     <div className="flex justify-between items-center">

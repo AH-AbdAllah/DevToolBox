@@ -1,15 +1,31 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Icon } from "@/components/ui/icon";
 import { Card, CardContent } from "@/components/ui/card";
 import { TOOLS, CATEGORIES, FAQS } from "@/lib/tools-data";
 import { ToolCategory } from "@/types";
+import { PremiumBanner } from "./premium-banner";
 
 export function HomePageClient() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<ToolCategory | "all">("all");
+
+  // Handle smooth scroll when navigating to hash URLs from other pages
+  useEffect(() => {
+    const hash = window.location.hash;
+    if (hash) {
+      const targetId = hash.replace("#", "");
+      const element = document.getElementById(targetId);
+      if (element) {
+        const timer = setTimeout(() => {
+          element.scrollIntoView({ behavior: "smooth" });
+        }, 150);
+        return () => clearTimeout(timer);
+      }
+    }
+  }, []);
 
   // Filter tools based on search query and category selector
   const filteredTools = TOOLS.filter((tool) => {
@@ -23,7 +39,16 @@ export function HomePageClient() {
 
   // Check if a tool is built or placeholder
   const isToolImplemented = (id: string) => {
-    return ["json-formatter", "base64-decoder", "password-generator"].includes(id);
+    return [
+      "json-formatter",
+      "base64-decoder",
+      "password-generator",
+      "csv-json-converter",
+      "tailwind-playground",
+      "crypto-sandbox",
+      "subnet-calculator",
+      "diff-checker",
+    ].includes(id);
   };
 
   return (
@@ -198,7 +223,7 @@ export function HomePageClient() {
       </section>
 
       {/* Category Info Grid */}
-      <section className="bg-secondary/20 py-20 border-y border-border">
+      <section id="categories" className="bg-secondary/20 py-20 border-y border-border scroll-mt-20">
         <div className="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 space-y-12">
           <div className="text-center max-w-3xl mx-auto space-y-3">
             <h2 className="text-2xl md:text-3xl font-bold tracking-tight text-foreground">
@@ -236,6 +261,9 @@ export function HomePageClient() {
           </div>
         </div>
       </section>
+
+      {/* Premium Upgrade Plans */}
+      <PremiumBanner />
 
       {/* Frequently Asked Questions */}
       <section id="faqs" className="container mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 space-y-12 scroll-mt-20">

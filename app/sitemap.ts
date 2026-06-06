@@ -8,6 +8,11 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "/tools/json-formatter",
     "/tools/base64-decoder",
     "/tools/password-generator",
+    "/tools/csv-json-converter",
+    "/tools/tailwind-playground",
+    "/tools/crypto-sandbox",
+    "/tools/subnet-calculator",
+    "/tools/diff-checker",
   ];
 
   return routes.map((route) => ({

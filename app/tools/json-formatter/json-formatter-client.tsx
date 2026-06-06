@@ -6,7 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent } from "@/components/ui/card";
 import { Icon } from "@/components/ui/icon";
 import { useCopyToClipboard } from "@/hooks/use-copy-to-clipboard";
-import { downloadAsFile } from "@/lib/utils";
+import { downloadAsFile, cn } from "@/lib/utils";
 
 const SAMPLE_JSON = `{
   "projectName": "DevToolBox",
@@ -26,6 +26,8 @@ const SAMPLE_JSON = `{
   "database": null
 }`;
 
+const MAX_SAFE_SIZE = 2 * 1024 * 1024; // 2MB
+
 export function JsonFormatterClient() {
   const [input, setInput] = useState("");
   const [output, setOutput] = useState("");
@@ -34,6 +36,7 @@ export function JsonFormatterClient() {
   const [indentSize, setIndentSize] = useState<"2" | "4" | "tab">("2");
   const [viewMode, setViewMode] = useState<"text" | "tree">("text");
   const [parsedObject, setParsedObject] = useState<any>(null);
+  const [mobileTab, setMobileTab] = useState<"input" | "output">("input");
   
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { isCopied, copy } = useCopyToClipboard();
@@ -66,6 +69,14 @@ export function JsonFormatterClient() {
       return;
     }
 
+    if (val.length > MAX_SAFE_SIZE) {
+      setError("Processing limit warning: Input is larger than 2MB. Parsing this may lock your browser tab. Try cleaning smaller snippets.");
+      setParsedObject(null);
+      setOutput("");
+      setMobileTab("output");
+      return;
+    }
+
     try {
       const parsed = JSON.parse(val);
       setParsedObject(parsed);
@@ -74,17 +85,26 @@ export function JsonFormatterClient() {
       setOutput(formatted);
       setError(null);
       setErrorLocation(null);
+      setMobileTab("output"); // Switch to output panel on mobile
     } catch (e: any) {
       setError(e.message);
       setParsedObject(null);
       const location = getErrorLineAndColumn(val, e.message);
       setErrorLocation(location);
+      setMobileTab("output");
     }
   };
 
   // Minify action
   const handleMinify = () => {
     if (!input.trim()) return;
+    if (input.length > MAX_SAFE_SIZE) {
+      setError("Processing limit warning: Input is larger than 2MB. Parsing this may lock your browser tab. Try cleaning smaller snippets.");
+      setParsedObject(null);
+      setOutput("");
+      setMobileTab("output");
+      return;
+    }
     try {
       const parsed = JSON.parse(input);
       setParsedObject(parsed);
@@ -92,11 +112,13 @@ export function JsonFormatterClient() {
       setOutput(minified);
       setError(null);
       setErrorLocation(null);
+      setMobileTab("output"); // Switch to output panel on mobile
     } catch (e: any) {
       setError(e.message);
       setParsedObject(null);
       const location = getErrorLineAndColumn(input, e.message);
       setErrorLocation(location);
+      setMobileTab("output");
     }
   };
 
@@ -106,6 +128,7 @@ export function JsonFormatterClient() {
     setError(null);
     setErrorLocation(null);
     setParsedObject(null);
+    setMobileTab("input");
   };
 
   const loadSample = () => {
@@ -118,6 +141,13 @@ export function JsonFormatterClient() {
     const file = e.target.files?.[0];
     if (!file) return;
 
+    if (file.size > MAX_SAFE_SIZE) {
+      setError("File upload warning: Uploaded file is larger than 2MB. Loading this may freeze the website.");
+      setMobileTab("output");
+      e.target.value = "";
+      return;
+    }
+
     const reader = new FileReader();
     reader.onload = (event) => {
       const text = event.target?.result as string;
@@ -125,7 +155,6 @@ export function JsonFormatterClient() {
       handleFormat(text);
     };
     reader.readAsText(file);
-    // Reset file input target
     e.target.value = "";
   };
 
@@ -141,7 +170,6 @@ export function JsonFormatterClient() {
                 key={size}
                 onClick={() => {
                   setIndentSize(size);
-                  // Trigger reformat if there is text
                   setTimeout(() => handleFormat(), 10);
                 }}
                 className={`px-3 py-1 rounded-md text-xs font-medium transition-all cursor-pointer capitalize ${
@@ -179,10 +207,36 @@ export function JsonFormatterClient() {
         </div>
       </div>
 
+      {/* Mobile Tab Swapper */}
+      <div className="lg:hidden flex rounded-lg border border-input p-0.5 bg-background">
+        <button
+          onClick={() => setMobileTab("input")}
+          className={`flex-1 py-2 rounded-md text-xs font-semibold transition-all cursor-pointer ${
+            mobileTab === "input"
+              ? "bg-secondary text-foreground shadow-sm"
+              : "text-muted-foreground hover:text-foreground"
+          }`}
+        >
+          Input Editor
+        </button>
+        <button
+          onClick={() => setMobileTab("output")}
+          className={`flex-1 py-2 rounded-md text-xs font-semibold transition-all cursor-pointer ${
+            mobileTab === "output"
+              ? "bg-secondary text-foreground shadow-sm"
+              : "text-muted-foreground hover:text-foreground"
+          }`}
+        >
+          Result Output {output || error ? "•" : ""}
+        </button>
+      </div>
+
       {/* Editor Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Input area */}
-        <Card className="flex flex-col h-[600px] border-border">
+        <Card className={cn("flex flex-col h-[550px] border-border", {
+          "hidden lg:flex": mobileTab !== "input"
+        })}>
           <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-muted/20">
             <span className="text-sm font-bold flex items-center">
               <Icon name="Terminal" className="w-4 h-4 mr-2 text-primary" />
@@ -200,11 +254,12 @@ export function JsonFormatterClient() {
               value={input}
               onChange={(e) => {
                 setInput(e.target.value);
-                // Real-time format validation attempt without forcing formatting on typing
                 try {
                   if (e.target.value.trim() === "") {
                     setError(null);
                     setErrorLocation(null);
+                  } else if (e.target.value.length > MAX_SAFE_SIZE) {
+                    setError("Large payload detected. Click Beautify / Minify to format cautiously.");
                   } else {
                     JSON.parse(e.target.value);
                     setError(null);
@@ -216,13 +271,12 @@ export function JsonFormatterClient() {
                 }
               }}
               mono
-              className="w-full h-full border-0 rounded-none focus-visible:ring-0 focus-visible:ring-offset-0 p-4 font-mono text-xs overflow-auto"
+              className="w-full h-full border-0 rounded-none focus-visible:ring-0 focus-visible:ring-offset-0 p-4 font-mono text-xs overflow-auto resize-none"
             />
           </CardContent>
-          {/* Action buttons footer */}
           <div className="flex items-center justify-between p-3 border-t border-border bg-muted/10">
             <div className="text-xs text-muted-foreground font-mono">
-              {input.length > 0 && `${input.length} characters`}
+              {input.length > 0 && `${(input.length / 1024).toFixed(1)} KB`}
             </div>
             <div className="flex space-x-2">
               <Button variant="outline" size="sm" onClick={handleMinify} disabled={!input.trim()}>
@@ -236,7 +290,9 @@ export function JsonFormatterClient() {
         </Card>
 
         {/* Output area */}
-        <Card className="flex flex-col h-[600px] border-border">
+        <Card className={cn("flex flex-col h-[550px] border-border", {
+          "hidden lg:flex": mobileTab !== "output"
+        })}>
           <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-muted/20">
             <div className="flex items-center space-x-2">
               <span className="text-sm font-bold flex items-center">
@@ -302,7 +358,7 @@ export function JsonFormatterClient() {
               <div className="p-6 h-full flex flex-col justify-center bg-destructive/5 text-destructive space-y-4">
                 <div className="flex items-center space-x-2.5">
                   <Icon name="AlertCircle" className="w-6 h-6 shrink-0" />
-                  <h4 className="font-bold text-sm">Invalid JSON Structure</h4>
+                  <h4 className="font-bold text-sm">JSON Parsing Alert</h4>
                 </div>
                 <div className="text-xs bg-destructive/10 border border-destructive/20 rounded-lg p-4 font-mono leading-relaxed space-y-1.5">
                   <p className="font-semibold">{error}</p>
@@ -351,11 +407,8 @@ function JsonTreeInspector({ data, name, isLast }: JsonTreeInspectorProps) {
   };
 
   const type = getType(data);
-
-  // Collapse toggle
   const toggleCollapse = () => setIsOpen(!isOpen);
 
-  // Primtive render helper
   const renderValue = (val: any, valType: string) => {
     if (valType === "null") return <span className="text-amber-600 font-semibold">null</span>;
     if (valType === "boolean") return <span className="text-sky-500 font-semibold">{val ? "true" : "false"}</span>;
@@ -375,7 +428,6 @@ function JsonTreeInspector({ data, name, isLast }: JsonTreeInspectorProps) {
     return (
       <div className="ml-4 my-1 select-none">
         <div className="flex items-center space-x-1">
-          {/* Collapse trigger caret */}
           {!isEmpty && (
             <button
               onClick={toggleCollapse}
@@ -423,7 +475,6 @@ function JsonTreeInspector({ data, name, isLast }: JsonTreeInspectorProps) {
     );
   }
 
-  // Render Primitive values
   return (
     <div className="ml-8 my-1 flex items-start">
       {renderName()}
