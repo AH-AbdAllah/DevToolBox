@@ -1,27 +1,53 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Inter, JetBrains_Mono } from "next/font/google";
 import { Suspense } from "react";
 import { Analytics } from "@/components/analytics";
 import { SplashScreen } from "@/components/layout/splash-screen";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const inter = Inter({
   subsets: ["latin"],
+  display: "swap",
+  variable: "--font-inter",
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const jetbrainsMono = JetBrains_Mono({
   subsets: ["latin"],
+  display: "swap",
+  variable: "--font-jetbrains-mono",
 });
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://devtoolbox.com"),
   title: {
-    default: "DevToolBox - Essential Online Developer & Student Tools",
+    default: "DevToolBox — Developer Intelligence Command Center",
     template: "%s | DevToolBox",
   },
-  description: "Secure, client-side developer and student utility platform.",
+  description:
+    "A high-precision, client-side developer intelligence platform. Sandbox detection, AI diagnostics, cryptographic utilities, and operational tooling. Zero server trace logging.",
+  keywords: [
+    "developer tools",
+    "command center",
+    "intelligence platform",
+    "JSON formatter",
+    "Base64 encoder",
+    "password generator",
+    "JWT decoder",
+    "AI debugger",
+    "subnet calculator",
+    "developer sandbox",
+  ],
+  openGraph: {
+    title: "DevToolBox — Developer Intelligence Command Center",
+    description:
+      "Operational developer tooling. Paste anything — the platform understands it. Client-side secure, zero trace logging.",
+    type: "website",
+    locale: "en_US",
+    siteName: "DevToolBox",
+  },
+  alternates: {
+    canonical: "/",
+  },
 };
 
 export default function RootLayout({
@@ -32,7 +58,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${inter.variable} ${jetbrainsMono.variable} h-full antialiased`}
       suppressHydrationWarning
     >
       <head>
