@@ -6,7 +6,8 @@ export type ToolCategory =
   | "encoders"
   | "generators"
   | "converters"
-  | "utilities";
+  | "utilities"
+  | "ai";
 
 export interface Tool {
   id: string;

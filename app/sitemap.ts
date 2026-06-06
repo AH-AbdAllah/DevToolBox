@@ -13,6 +13,13 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "/tools/crypto-sandbox",
     "/tools/subnet-calculator",
     "/tools/diff-checker",
+    "/tools/error-translator",
+    "/tools/jwt-decoder",
+    "/tools/uuid-generator",
+    "/tools/http-status",
+    "/tools/github-analyzer",
+    "/tools/interview-simulator",
+    "/tools/project-validator",
   ];
 
   return routes.map((route) => ({

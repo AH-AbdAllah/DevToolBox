@@ -31,6 +31,12 @@ export const CATEGORIES: CategoryInfo[] = [
     description: "Handy web utilities for checking status, expressions, and hashes.",
     icon: "Terminal",
   },
+  {
+    id: "ai",
+    name: "AI & Intelligence",
+    description: "Advanced AI tools for code diagnostics, translations, architecture critiques, and simulations.",
+    icon: "Sparkles",
+  },
 ];
 
 export const TOOLS: Tool[] = [
@@ -177,6 +183,53 @@ export const TOOLS: Tool[] = [
     icon: "Compass",
     keywords: ["http", "status code", "explorer", "rfc", "200 OK", "404", "500"],
   },
+  {
+    id: "error-translator",
+    name: "AI Error Translator & Debugger",
+    description: "Translate cryptic exceptions, compiler dumps, and trace logs into straightforward answers with suggested code fixes.",
+    category: "ai",
+    href: "/tools/error-translator",
+    icon: "ShieldAlert",
+    keywords: ["error", "translator", "debug", "compiler", "exception", "ai", "trace"],
+    isPopular: true,
+    isFeatured: true,
+  },
+  {
+    id: "project-validator",
+    name: "AI Project Idea Validator",
+    description: "Assess tech stack choices, build SWOT analysis maps, map MVC scopes, and define checklists for side-projects.",
+    category: "ai",
+    href: "/tools/project-validator",
+    icon: "Sparkles",
+    keywords: ["project", "idea", "validator", "startup", "swot", "mvp", "ai"],
+  },
+  {
+    id: "github-analyzer",
+    name: "AI GitHub Repo Analyzer",
+    description: "Inspect open-source repositories to generate architecture reports, contributor patterns, and code optimizations.",
+    category: "ai",
+    href: "/tools/github-analyzer",
+    icon: "Terminal",
+    keywords: ["github", "repository", "analysis", "code quality", "critic", "ai"],
+  },
+  {
+    id: "architecture-critic",
+    name: "AI Architecture Critic",
+    description: "Analyze system designs and database setups to detect scaling bottlenecks and single points of failure.",
+    category: "ai",
+    href: "/tools/architecture-critic",
+    icon: "Compass",
+    keywords: ["architecture", "design", "critic", "scaling", "database", "ai"],
+  },
+  {
+    id: "interview-simulator",
+    name: "AI Interview Simulator",
+    description: "Test developer skills using mock interview role simulations with score assessments and adaptive feedback.",
+    category: "ai",
+    href: "/tools/interview-simulator",
+    icon: "Cpu",
+    keywords: ["interview", "mock interview", "simulation", "developer test", "career", "ai"],
+  },
 ];
 
 export const FAQS: FAQItem[] = [
@@ -195,5 +248,9 @@ export const FAQS: FAQItem[] = [
   {
     question: "How secure is the Password Generator?",
     answer: "It uses the browser's native window.crypto.getRandomValues() API, which is a Cryptographically Secure Pseudo-Random Number Generator (CSPRNG). This guarantees that passwords generated are mathematically secure and unpredictable.",
+  },
+  {
+    question: "How do the AI tools process my inputs? Are they private?",
+    answer: "Yes, 100% private. All AI tools execute locally in your browser by connecting directly to Google's official Gemini API using the API Key you provide. Your inputs go straight to Google's endpoints; our servers never see, log, or store your queries, tokens, or credentials.",
   },
 ];

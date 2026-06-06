@@ -8,12 +8,30 @@ export function Footer() {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
           {/* Logo & Pitch */}
           <div className="col-span-2 md:col-span-1 space-y-4">
-            <Link href="/" className="flex items-center space-x-2">
-              <div className="flex items-center justify-center w-6 h-6 rounded bg-gradient-to-tr from-primary to-indigo-500 shadow-sm">
-                <Icon name="Cpu" className="w-3.5 h-3.5 text-primary-foreground" />
+            <Link href="/" className="flex items-center space-x-2.5 group/logo">
+              <div className="relative">
+                {/* Outer glowing backdrop */}
+                <div className="absolute inset-0 rounded bg-gradient-to-tr from-primary to-indigo-500 blur-[2px] opacity-30 group-hover/logo:opacity-75 transition-opacity duration-300" />
+                {/* Inner icon canvas */}
+                <div className="relative flex items-center justify-center w-7.5 h-7.5 rounded bg-card border border-border group-hover/logo:border-primary/50 transition-colors duration-300 shadow-sm">
+                  {/* Glowing core code block SVG */}
+                  <svg
+                    className="w-3.5 h-3.5 text-primary group-hover/logo:scale-110 group-hover/logo:rotate-3 transition-transform duration-300"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <polyline points="16 18 22 12 16 6" />
+                    <polyline points="8 6 2 12 8 18" />
+                    <line x1="14" y1="4" x2="10" y2="20" className="text-indigo-400/80" />
+                  </svg>
+                </div>
               </div>
-              <span className="font-bold text-base bg-clip-text text-transparent bg-gradient-to-r from-foreground via-foreground/90 to-muted-foreground">
-                DevToolBox
+              <span className="font-extrabold text-base tracking-tight text-foreground">
+                Dev<span className="text-primary group-hover/logo:text-indigo-400 transition-colors duration-200">ToolBox</span>
               </span>
             </Link>
             <p className="text-xs text-muted-foreground leading-relaxed max-w-xs">

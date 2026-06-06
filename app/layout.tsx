@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { Suspense } from "react";
 import { Analytics } from "@/components/analytics";
+import { SplashScreen } from "@/components/layout/splash-screen";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -50,6 +51,7 @@ export default function RootLayout({
         />
       </head>
       <body className="min-h-full flex flex-col bg-background text-foreground transition-colors duration-200">
+        <SplashScreen />
         {children}
         <Suspense fallback={null}>
           <Analytics />

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, ChangeEvent } from "react";
+import { useState, useRef, ChangeEvent, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent } from "@/components/ui/card";
@@ -40,6 +40,19 @@ export function JsonFormatterClient() {
   
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { isCopied, copy } = useCopyToClipboard();
+
+  // Load sandbox transfer inputs on mount
+  useEffect(() => {
+    const transfer = sessionStorage.getItem("sandbox_transfer_input");
+    if (transfer) {
+      setInput(transfer);
+      // Delay slightly to ensure states are bound before formatting
+      setTimeout(() => {
+        handleFormat(transfer);
+      }, 50);
+      sessionStorage.removeItem("sandbox_transfer_input");
+    }
+  }, []);
 
   // Helper: Find exact line and column of syntax errors
   const getErrorLineAndColumn = (json: string, errMsg: string) => {

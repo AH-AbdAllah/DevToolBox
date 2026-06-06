@@ -15,6 +15,7 @@ const categoryLabels: Record<ToolCategory, string> = {
   converters: "Converter",
   developers: "Developer Utility",
   utilities: "Utility",
+  ai: "AI & Intelligence",
 };
 
 export function ToolHeader({ title, description, category }: ToolHeaderProps) {

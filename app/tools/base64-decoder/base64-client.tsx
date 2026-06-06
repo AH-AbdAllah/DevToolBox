@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, ChangeEvent } from "react";
+import { useState, useRef, ChangeEvent, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent } from "@/components/ui/card";
@@ -19,6 +19,19 @@ export function Base64Client() {
   const [urlSafe, setUrlSafe] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [mobileTab, setMobileTab] = useState<"input" | "output">("input");
+
+  // Load sandbox inputs on mount
+  useEffect(() => {
+    const transfer = sessionStorage.getItem("sandbox_transfer_input");
+    if (transfer) {
+      setTextInput(transfer);
+      setMode("decode");
+      setTimeout(() => {
+        handleTextConvert(transfer, "decode");
+      }, 50);
+      sessionStorage.removeItem("sandbox_transfer_input");
+    }
+  }, []);
 
   // File states
   const [fileDetails, setFileDetails] = useState<{ name: string; size: number; type: string } | null>(null);
