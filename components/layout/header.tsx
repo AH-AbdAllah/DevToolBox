@@ -93,15 +93,6 @@ export function Header() {
                 <Icon name="Moon" className="w-4 h-4" />
               )}
             </button>
-
-            {/* Premium CTA */}
-            <Link
-              href="#premium"
-              className="hidden sm:inline-flex items-center space-x-1 px-3.5 py-1.5 rounded-lg bg-primary/10 hover:bg-primary/20 text-xs font-semibold text-primary transition-all duration-200"
-            >
-              <Icon name="Sparkles" className="w-3.5 h-3.5" />
-              <span>Go Premium</span>
-            </Link>
           </div>
         </div>
       </header>

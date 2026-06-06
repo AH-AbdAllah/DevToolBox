@@ -62,11 +62,6 @@ export function Footer() {
                   FAQs
                 </a>
               </li>
-              <li>
-                <a href="#premium" className="text-xs text-muted-foreground hover:text-foreground transition-colors">
-                  Premium Version
-                </a>
-              </li>
             </ul>
           </div>
 

@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
-import { PremiumBanner } from "@/components/marketing/premium-banner";
 import { HomePageClient } from "@/components/marketing/home-page-client";
 
 export const metadata: Metadata = {
@@ -57,7 +56,6 @@ export default function HomePage() {
       <main className="flex-grow">
         <HomePageClient />
       </main>
-      <PremiumBanner />
       <Footer />
     </>
   );
